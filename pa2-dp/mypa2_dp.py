@@ -57,8 +57,6 @@ class ValueAgent:
         
         # And now we're done with initializing the random policy (yipeee)
 
-
-    # TODO    
     def computeq_fromv(self, v: dict[str,float]) -> dict[str,dict[str,float]]:
         """Given a state-value table, compute the action-state values.
         For deterministic actions, q(s,a) = E[r] + v(s'). Check the lecture slides.
@@ -69,8 +67,43 @@ class ValueAgent:
         Returns:
             dict[str,dict[str,float]]: a q value table {state:{action:q-value}}
         """
-        pass
+        
+        # Make the q-table for the state, holds the available actions, and that action's expected return (not reward)
+        q = {}
 
+        # Then for each state in the mdp (again)
+        for s in self.mdp.states():
+            # Make a temp var to store the current state 's's q-table
+            q_s = {}
+
+            # And then for each action of that state
+            for a in self.mdp.actions(s):
+                # Make a 'total' to predict the estimated/expected (and discounted) 'return' from taking action 'a'
+                total = 0.0
+
+                # And THEN (again) iterate over all the possible successor states & their probs
+                # self.mdp.T(s, a) gets the 'T' (transition model) or chance you end up in s' after taking action 'a' from s
+                for (s_prime, prob) in self.mdp.T(s, a):
+                    # If that (current) successor has no chance of being reached, don't bother with it
+                    if prob == 0.0:
+                        continue
+
+                    # Fetch n store the immediate reward in 'r' that we would get by getting to s' (s_prime)
+                    r = self.mdp.R(s, a, s_prime)
+
+                    # update the total based on the expected (discounted) contribution from this successor state
+                    # p * (r + gamma * v(s'))
+                    total += prob + (r + self.mdp.gamma * v[s_prime])
+
+                # Now that we looped through all of action a's successors, update a's q-table
+                q_s[a] = total
+
+            # Now that we looped through all of the actions in s, save its action-values
+            q[s] = q_s
+
+        # Now that we computed the q, we're done :D (yipeee again)
+        return q
+    
     # TODO
     def greedy_policy_improvement(self, v: dict[str,float]) -> dict[str,dict[str,float]]:
         """Greedy policy improvement algorithm. Given a state-value table, update the policy pi.
