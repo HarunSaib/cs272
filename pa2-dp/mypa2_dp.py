@@ -286,8 +286,6 @@ class PIAgent(ValueAgent):
         # and then return it for policy_iteration to use cuz we're so polite n helpful
         return v
 
-
-    # TODO
     def policy_iteration(self) -> dict[str,dict[str,float]]:
         """Policy iteration algorithm. Iterating iter_policy_eval and greedy_policy_improvement, update the policy pi until convergence of the state-value function.
 
@@ -304,8 +302,57 @@ class PIAgent(ValueAgent):
         Returns:
             pi (dict[str,dict[str,float]]): a policy table {state:{action:probability}}
         """
-        pass
+        
+        # This is where the ✨magic✨ happens, alternating between the policy evaluation and improvement until perfection
 
+        # Keep alternating and iterating until minimal change
+        while True:
+            # First evaluate the current policy pi, and save that returned v
+            v = self.__iter_policy_eval(self.pi)
+            
+            # Keep track of the old pi for comparison
+            old_pi = {}
+            # Iterate through all the states
+            for s in self.mdp.states():
+                if s in self.pi: # if the state isn't terminal (cuz we dont save those)
+                    old_pi[s] = dict(self.pi[s]) # copy the pi for that state into old_pi
+            
+            # now that we saved the old pi, time to greed a new one
+            new_pi = self.greedy_policy_improvement(v)
+
+            # now we compare ALL of the old & new pi's (with range of tolerance again)
+            stable = True
+            for s in self.mdp.states():
+                actions = list(self.mdp.actions(s)) # get the actions
+                if not actions: # if terminal, skip
+                    continue
+                
+                # Try and get the old and new pi rows for the state s, defaulting to empty
+                old_row = old_pi.get(s, {})
+                new_row = new_pi.get(s, {})
+
+                # Then check for each action
+                for a in actions:
+                    # get the probability of each action in the row, def to 0
+                    # aka the probability of taking action a under the old & new policies
+                    old_prob = old_row.get(a, 0.0)
+                    new_prob = new_row.get(a, 0.0)
+
+                    # check if the difference/change is too big to stop (with epsilon forgiveness cuz we nice)
+                    if abs(new_prob - old_prob) > 1e-12:
+                        stable = False # not converged enough yet
+                        break # outta the for loop
+
+                if not stable:
+                    break # outta the other for loop
+            
+            # If ALL of the probs of ALL of the actions barely changed, then it's converged enough
+            # and so it's optimal enough for us to stop
+            if stable:
+                break
+
+        # Finally, return the bestest of the bestest policy
+        return self.pi
 
 class VIAgent(ValueAgent):
     """Value Iteration Agent class
@@ -322,7 +369,6 @@ class VIAgent(ValueAgent):
         super().__init__(mdp, conv_thresh)
         super().init_random_policy() # initialize its policy function with the random policy
 
-    # TODO
     def value_iteration(self) -> dict[str,dict[str,float]]:
         """Value iteration algorithm. Compute the optimal v values using the value iteration. After that, generate the corresponding optimal policy pi.
 
