@@ -139,7 +139,7 @@ class ValueAgent:
             # speaks for itself
             for a in actions:
                 # If the difference is miniscule cuz floats are weird
-                if abs(q[s][a] - max_q) < 1e-12:
+                if abs(q[s][a] - max_q) <= 1e-12:
                     # Then we save that greedy action into bestest
                     bestest.append(a)
 
