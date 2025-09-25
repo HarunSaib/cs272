@@ -338,4 +338,64 @@ class VIAgent(ValueAgent):
         Returns:
             pi (dict[str,dict[str,float]]): a policy table {state:{action:probability}}
         """
-        pass
+
+        # some of the code is basically the same as policy eval so just copy that over to edit
+
+        # This is the same
+        states = self.mdp.states()
+        v = {s: self.v.get(s, 0.0) for s in states}
+        self.v_update_history.append({s: v[s] for s in states})
+
+        # Still the same
+        while True:
+            next_v = {}
+
+            # Now we start changing
+            for s in states:
+                # make a list of the available actions in s
+                actions = list(self.mdp.actions(s))
+
+                # If it's a terminal state with no actions, skip it
+                if not actions: 
+                    next_v[s] = 0.0 # (set it to 0 first cuz we're not messy)
+                    continue
+
+                # now we gotta find the argmax again
+                bestest = None
+                for a in actions:
+                    total = 0.0 # expected return again
+                    # this thing again I've explained it before
+                    for (s_prime, prob) in self.mdp.T(s, a):
+                        if prob == 0.0: # if the agent doesn't care about a, we don't either
+                            continue
+
+                        # get the reward same as last time
+                        r = self.mdp.R(s, a, s_prime)
+                        # update the (discounted) total again
+                        total += prob * (r + self.mdp.gamma * v[s_prime])
+
+                    # look for the bestest argmax 
+                    if bestest is None or (total > bestest):
+                        bestest = total
+                
+
+                # Save the new value for this state, same logic, different numbers
+                next_v[s] = bestest if bestest is not None else 0.0
+
+            # Take another snapshot same as last time
+            self.v_update_history.append({s: next_v[s] for s in states})
+
+            # Same as last time
+            if not self.check_term(v, next_v):
+                v = next_v
+                break
+
+            v = next_v
+
+        # save the bestest v to the agent for future use again
+        self.v = v
+
+        # now that we have our v, we use it to derive the optimal pi from our greedy helper
+        pi = self.greedy_policy_improvement(self.v)
+        # and then return our bestest and greediest policy (mwhahahaha)
+        return pi
