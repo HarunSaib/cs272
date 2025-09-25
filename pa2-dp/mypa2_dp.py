@@ -161,8 +161,6 @@ class ValueAgent:
         # And then return the new policy and we're done (yipeee again)
         return new_pi
 
-
-    # TODO
     def check_term(self, v: dict[str,float], next_v: dict[str,float]) -> bool:
         """Return True if the state value has NOT converged.
         Convergence here is defined as follows: 
@@ -175,7 +173,19 @@ class ValueAgent:
         Returns:
             bool: True if continue; False if converged
         """
-        pass     
+
+        # For all the known states in the mdp
+        for s in self.mdp.states():
+            # Calculate the difference (delta) between the current and next state's values
+            delta = abs(next_v[s] - v[s])
+
+            # If the difference is big enough (greater than the threshhold)
+            if delta > self.thresh:
+                # We're not done, so it's a go to continue iterating
+                return True
+        
+        # Otherwise, if all the states are converged enough, we're done (yayyyy we did it)
+        return False
 
 
 class PIAgent(ValueAgent):
