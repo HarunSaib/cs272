@@ -23,14 +23,16 @@ class ValueAgent:
         self.mdp = mdp
         self.thresh = conv_thresh
         self.v_update_history = list()
-
+        
+    # TODO
     def init_random_policy(self):
         """Initialize the policy function with equally distributed random probability.
 
         When n actions are available at state s, the probability of choosing an action should be 1/n.
         """        
         pass
-                    
+
+    # TODO    
     def computeq_fromv(self, v: dict[str,float]) -> dict[str,dict[str,float]]:
         """Given a state-value table, compute the action-state values.
         For deterministic actions, q(s,a) = E[r] + v(s'). Check the lecture slides.
@@ -43,6 +45,7 @@ class ValueAgent:
         """
         pass
 
+    # TODO
     def greedy_policy_improvement(self, v: dict[str,float]) -> dict[str,dict[str,float]]:
         """Greedy policy improvement algorithm. Given a state-value table, update the policy pi.
 
@@ -54,6 +57,7 @@ class ValueAgent:
         """
         pass
 
+    # TODO
     def check_term(self, v: dict[str,float], next_v: dict[str,float]) -> bool:
         """Return True if the state value has NOT converged.
         Convergence here is defined as follows: 
@@ -84,6 +88,7 @@ class PIAgent(ValueAgent):
         super().__init__(mdp, conv_thresh)
         super().init_random_policy() # initialize its policy function with the random policy
 
+    # TODO
     def __iter_policy_eval(self, pi: dict[str,dict[str,float]]) -> dict[str,float]:
         """Iterative policy evaluation algorithm. Given a policy pi, evaluate the value of states (v).
 
@@ -97,7 +102,7 @@ class PIAgent(ValueAgent):
         """
         pass
 
-
+    # TODO
     def policy_iteration(self) -> dict[str,dict[str,float]]:
         """Policy iteration algorithm. Iterating iter_policy_eval and greedy_policy_improvement, update the policy pi until convergence of the state-value function.
 
@@ -132,6 +137,7 @@ class VIAgent(ValueAgent):
         super().__init__(mdp, conv_thresh)
         super().init_random_policy() # initialize its policy function with the random policy
 
+    # TODO
     def value_iteration(self) -> dict[str,dict[str,float]]:
         """Value iteration algorithm. Compute the optimal v values using the value iteration. After that, generate the corresponding optimal policy pi.
 
