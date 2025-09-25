@@ -203,7 +203,6 @@ class PIAgent(ValueAgent):
         super().__init__(mdp, conv_thresh)
         super().init_random_policy() # initialize its policy function with the random policy
 
-    # TODO
     def __iter_policy_eval(self, pi: dict[str,dict[str,float]]) -> dict[str,float]:
         """Iterative policy evaluation algorithm. Given a policy pi, evaluate the value of states (v).
 
@@ -215,7 +214,78 @@ class PIAgent(ValueAgent):
         Returns:
             dict[str,float]: state-value table {state:v-value}
         """
-        pass
+        
+        # this is gonna be ugly :c
+
+        # Just get states cuz we're gonna be reusing it
+        states = self.mdp.states()
+
+        # get the (shallow copy of the) agent's current v (values of states)
+        v = {s: self.v.get(s, 0.0) for s in states}
+
+        # it's 1am I dont wanna write comments for this
+        # too bad.
+        # Quickly take a 'snapshot' of the current v to keep track of the history of them
+        self.v_update_history.append({s: v[s] for s in states})
+
+        # Now, start doing the Bellman expectation equation, and stop when it converges
+        while True: # ew
+            # Start storing the next expected v's calculated by bellman
+            next_v = {}
+
+            # yk what this means by now
+            for s in states:
+                # Make a default val if the state has no actions under this policy (yet)
+                v_s = 0.0
+
+                # If the state has actions to choose from
+                if s in pi: # since terminal states aren't in pi
+                    # Then for all the actions available in the state
+                    for a in self.mdp.actions(s):
+                        # Then get the weighted action-values of the state s, following pi (defaulting to 0)
+                        pi_sa = pi[s].get(a, 0.0)
+                        # If they don't contribute at all, dont bother with them
+                        if pi_sa == 0.0:
+                            continue
+                        
+                        # Make an expected return to calculate taking action a and then continuing with v
+                        total = 0.0
+
+                        # too sleepy to comment this I've said it before
+                        for (s_prime, prob) in self.mdp.T(s, a):
+                            # If we never choose the action, skip it
+                            if prob == 0.0:
+                                continue
+
+                            # get the immidiate reward (again) of if we take action a from s to s'
+                            r = self.mdp.R(s, a, s_prime)
+                            # update the (discounted) total again (yayy hes back)
+                            total += prob * (r + self.mdp.gamma * v[s_prime])
+
+                        # Get the weight according to the policy's prob of taking action a in s
+                        v_s += pi_sa * total
+                
+                # Save the new state value for this state
+                next_v[s] = v_s
+
+            # Take another snapshot after the iteration for comparison (next_v instead of v this time)
+            self.v_update_history.append({s: next_v[s] for s in states})
+
+            # If we haven't converged yet (why isn't that function named converged)
+            if not self.check_term(v, next_v):
+                # if we converged, we wanna use the new converged values so update v to that
+                v = next_v
+                break # FREEDOM FROM THE WHILE LOOP
+
+            # Otherwise we're not done yet :c so update v and move onto the next iteration
+            v = next_v
+
+        # once we're free of the loop, save the bestest newest v in the agent
+        self.v = v
+
+        # and then return it for policy_iteration to use cuz we're so polite n helpful
+        return v
+
 
     # TODO
     def policy_iteration(self) -> dict[str,dict[str,float]]:
