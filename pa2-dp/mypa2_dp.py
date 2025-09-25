@@ -104,7 +104,6 @@ class ValueAgent:
         # Now that we computed the q, we're done :D (yipeee again)
         return q
     
-    # TODO
     def greedy_policy_improvement(self, v: dict[str,float]) -> dict[str,dict[str,float]]:
         """Greedy policy improvement algorithm. Given a state-value table, update the policy pi.
 
@@ -114,7 +113,54 @@ class ValueAgent:
         Returns:
             pi (dict[str,dict[str,float]]): a policy table {state:{action:probability}}
         """
-        pass
+        
+        # First things first, get the action-values q(s, a) from the state-values 'v'
+        q = self.computeq_fromv(v)
+
+        # Start making the new pi policy
+        new_pi = {}
+
+        # Once again, for each state s in state, find the best action in that state (greedy)
+        for s in self.mdp.states():
+            # Save the actions available in s in 'actions'
+            actions = list(self.mdp.actions(s))
+
+            # If no actions are available, then it's a terminal state so don't bother
+            if not actions:
+                continue
+
+            # Try to find the "argMax" of q (best action) and save it
+            max_q = max((q[s][a] for a in actions), default = None)
+
+            # Now save all the bestest of actions where the q(s, a) == max_q 
+            # (with an edge case tolerance range 'epsilon')
+            bestest = []
+
+            # speaks for itself
+            for a in actions:
+                # If the difference is miniscule cuz floats are weird
+                if abs(q[s][a] - max_q) < 1e-12:
+                    # Then we save that greedy action into bestest
+                    bestest.append(a)
+
+            # Now distribute the probability uniformly for the bestest actions
+            prob = 1.0 / float(len(bestest))
+            # Make the row to hold the probs of all the actions {action : prob}
+            row = {}
+            for a in actions:
+                # then if the action is in bestest, save that action and it's new prob in the row
+                row[a] = prob if a in bestest else 0.0
+                    
+            # And now update the pi so it has the new (greedy) row for this current state s
+            new_pi[s] = row
+
+        # Now that we've done the 'greedy improvement', update the q-table, and policy to reflect that
+        self.q = q
+        self.pi = new_pi
+
+        # And then return the new policy and we're done (yipeee again)
+        return new_pi
+
 
     # TODO
     def check_term(self, v: dict[str,float], next_v: dict[str,float]) -> bool:
