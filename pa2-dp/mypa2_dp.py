@@ -43,14 +43,14 @@ class ValueAgent:
         # For each state, we need to give its actions a probabilty distribution (duh)
         for s in states:
             # Fetch the available actions from the current state 's' and save them
-            actions = list(self.mdp.actions(s))
+            actions = self.mdp.actions(s)
 
             # If there arent any actions, then it's a terminal state so we done
             if not actions:
                 continue
             
             # Otherwise, calculate the "uniform probabilty", which is just 1 / num of actions (ezpz)
-            prob = 1.0 / float(len(actions))
+            prob = 1.0 / len(actions)
 
             # Then just give that probabilty to each of the current state 's's actions (english is hard)
             self.pi[s] = {a: prob for a in actions}
@@ -123,7 +123,7 @@ class ValueAgent:
         # Once again, for each state s in state, find the best action in that state (greedy)
         for s in self.mdp.states():
             # Save the actions available in s in 'actions'
-            actions = list(self.mdp.actions(s))
+            actions = self.mdp.actions(s)
 
             # If no actions are available, then it's a terminal state so don't bother
             if not actions:
@@ -144,7 +144,7 @@ class ValueAgent:
                     bestest.append(a)
 
             # Now distribute the probability uniformly for the bestest actions
-            prob = 1.0 / float(len(bestest))
+            prob = 1.0 / len(bestest)
             # Make the row to hold the probs of all the actions {action : prob}
             row = {}
             for a in actions:
@@ -323,7 +323,7 @@ class PIAgent(ValueAgent):
             # now we compare ALL of the old & new pi's (with range of tolerance again)
             stable = True
             for s in self.mdp.states():
-                actions = list(self.mdp.actions(s)) # get the actions
+                actions = self.mdp.actions(s) # get the actions
                 if not actions: # if terminal, skip
                     continue
                 
@@ -399,7 +399,7 @@ class VIAgent(ValueAgent):
             # Now we start changing
             for s in states:
                 # make a list of the available actions in s
-                actions = list(self.mdp.actions(s))
+                actions = self.mdp.actions(s)
 
                 # If it's a terminal state with no actions, skip it
                 if not actions: 
