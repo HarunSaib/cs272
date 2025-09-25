@@ -93,7 +93,7 @@ class ValueAgent:
 
                     # update the total based on the expected (discounted) contribution from this successor state
                     # p * (r + gamma * v(s'))
-                    total += prob + (r + self.mdp.gamma * v[s_prime])
+                    total += prob * (r + self.mdp.gamma * v[s_prime])
 
                 # Now that we looped through all of action a's successors, update a's q-table
                 q_s[a] = total
