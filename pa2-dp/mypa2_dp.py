@@ -23,14 +23,40 @@ class ValueAgent:
         self.mdp = mdp
         self.thresh = conv_thresh
         self.v_update_history = list()
-        
-    # TODO
+
     def init_random_policy(self):
         """Initialize the policy function with equally distributed random probability.
 
         When n actions are available at state s, the probability of choosing an action should be 1/n.
         """        
-        pass
+
+        # Fetch and store all the states from mdp in 'states'
+        states = self.mdp.states()
+
+        # Initialize the state-value table V(s) to 0 for all the states fetched
+        self.v = {s: 0.0 for s in states}
+        # Then do the same for the Q-tables, and make some empty ones
+        self.q = {s: {} for s in states}
+        # Also initialize pi, which is gonna have the action % per state
+        self.pi = {}
+
+        # For each state, we need to give its actions a probabilty distribution (duh)
+        for s in states:
+            # Fetch the available actions from the current state 's' and save them
+            actions = list(self.mdp.actions(s))
+
+            # If there arent any actions, then it's a terminal state so we done
+            if not actions:
+                continue
+            
+            # Otherwise, calculate the "uniform probabilty", which is just 1 / num of actions (ezpz)
+            prob = 1.0 / float(len(actions))
+
+            # Then just give that probabilty to each of the current state 's's actions (english is hard)
+            self.pi[s] = {a: prob for a in actions}
+        
+        # And now we're done with initializing the random policy (yipeee)
+
 
     # TODO    
     def computeq_fromv(self, v: dict[str,float]) -> dict[str,dict[str,float]]:
